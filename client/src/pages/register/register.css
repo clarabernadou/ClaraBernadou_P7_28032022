@@ -1,0 +1,69 @@
+.register {
+  width: 100vw;
+  height: 100vh;
+  background-color: midnightblue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.registerHeader,
+.registerBody {
+  display: flex;
+  justify-content: center;
+}
+
+.registerLogo {
+  height: 4em;
+  color: white;
+  margin-bottom: 1em;
+}
+
+.registerForm{
+  height: 11em;
+  width: 25em;
+  padding: 2em;
+  background-color: white;
+  border-radius: 2em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.registerInput{
+  height: 2.5em;
+  border-radius: 2em;
+  border: none;
+  background-color: lightgray;
+  font-size: 0.8em;
+  padding-left: 1em;
+  margin-bottom: 0.5em;
+  text-align: center;
+}
+
+.registerInput:focus{
+    outline: none;
+}
+
+.registerButton{
+  height: 3em;
+  margin: 0 12em;
+  border-radius: 2em;
+  border: none;
+  background-color: midnightblue;
+  color: white;
+  font-size: 0.8em;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
+.haveAccount{
+  text-align: end;
+  font-size: 0.7em;
+}
+
+.haveAccount:hover, 
+.registerButton:hover{
+  text-decoration: underline;
+}
