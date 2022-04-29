@@ -3,6 +3,7 @@ import Logo from "../../assets/logo/groupomania-logo.png"
 import React from "react";
 
 export default function Register() {
+  
   return (
     <div className="register">
       <div className="registerWrapper">
