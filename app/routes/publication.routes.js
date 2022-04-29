@@ -1,5 +1,5 @@
 module.exports = app => {
-  const publications = require("../controllers/tutorial.controller.js");
+  const publications = require("../controllers/publication.controller.js");
   var router = require("express").Router();
 
   // Create a new publication
