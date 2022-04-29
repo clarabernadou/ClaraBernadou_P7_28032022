@@ -22,7 +22,7 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.role = require("../models/role.model.js")(sequelize, Sequelize);
-db.publications = require("./tutorial.model.js")(sequelize, Sequelize);
+db.publications = require("./publication.model.js")(sequelize, Sequelize);
 db.comments = require("./comment.model")(sequelize, Sequelize);
 
 /*********** ROLES - USERS ***********/
@@ -38,41 +38,23 @@ db.user.belongsToMany(db.role, {
   otherKey: "roleId"
 });
 db.ROLES = ["user", "admin", "moderator"];
-/*********** USERS - PUBLICATIONS ***********/
-db.user.hasMany(db.publications, {
-    foreignKey: "publicationId",
-    otherKey: "userId",
-    as: "publications"
-})
+
 /*********** PUBLICATIONS - USERS ***********/
 db.publications.belongsTo(db.user, {
   foreignKey: "userId",
-  otherKey: "publicationId",
-  as: "user"
+  as: "owner"
 })
-/*********** USERS - COMMENTS ***********/
-db.user.hasMany(db.comments, {
-  foreignKey: "commentId",
-  otherKey: "userId",
-  as: "comments"
-})
+
 /*********** COMMENTS - USERS ***********/
 db.comments.belongsTo(db.user, {
   foreignKey: "userId",
-  otherKey: "commentId",
-  as: "comment"
+  as: "author"
 })
-/********** PUBLICATIONS - COMMENTS **********/
-db.publications.hasMany( db.comments, { 
-    foreignKey: "commentId",
-    otherKey: "publicationId",
-    as: "comments" 
-});
+
 /*********** COMMENTS - PUBLICATIONS ***********/
 db.comments.belongsTo(db.publications, {
   foreignKey: "publicationId",
-  otherKey: "commentId",
-  as: "publications",
+  as: "publication",
 });
 
 

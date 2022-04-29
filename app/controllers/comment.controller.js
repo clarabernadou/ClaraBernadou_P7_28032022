@@ -1,11 +1,11 @@
 const db = require("../models");
 const Comment = db.comments;
 
-exports.createComment = (req, res, tutorialId) => {
+exports.createComment = (req, res, publicationId) => {
     const comment = {
       name: req.body.name,
       text: req.body.text,
-      tutorialId: req.params.tutorialId
+      publicationId: req.params.publicationId
     }
     Comment.create(comment)
       .then((data) => {
@@ -18,7 +18,7 @@ exports.createComment = (req, res, tutorialId) => {
 };
 
 exports.findCommentById = (id) => {
-    return Comment.findByPk(id, { include: ["tutorial"] })
+    return Comment.findByPk(id, { include: ["publication"] })
       .then((comment) => {
         return comment;
       })

@@ -8,9 +8,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING, 
         required: true 
       },
-      tutorialId: {
-        type: DataTypes.STRING, 
+      publicationId: {
+        type: DataTypes.INTEGER,
         required: true 
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        required: true
       }
     });
     return Comment;

@@ -27,12 +27,12 @@ function initial() {
   }
 
 
-//db.sequelize.sync();
+db.sequelize.sync();
 
- db.sequelize.sync({force: true}).then(() => {
+/* db.sequelize.sync({force: true}).then(() => {
   console.log('Drop and Resync Db'); 
   initial()
-}); 
+}); */
 
 var corsOptions = {
   origin: "http://localhost:8080"
@@ -58,7 +58,7 @@ app.get("/", (req, res) => {
 // routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
-require("./app/routes/tutorial.routes")(app);
+require("./app/routes/publication.routes")(app);
 require("./app/routes/comment.routes")(app);
 
 // set port, listen for requests
