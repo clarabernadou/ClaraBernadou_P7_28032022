@@ -1,5 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
     const Comment = sequelize.define("comment", {
+      userId: {
+        type: DataTypes.INTEGER,
+        required: true
+      },
       name: {
         type: DataTypes.STRING, 
         required: true 
@@ -11,10 +15,6 @@ module.exports = (sequelize, DataTypes) => {
       publicationId: {
         type: DataTypes.INTEGER,
         required: true 
-      },
-      userId: {
-        type: DataTypes.INTEGER,
-        required: true
       }
     });
     return Comment;

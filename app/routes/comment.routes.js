@@ -1,11 +1,11 @@
 module.exports = app => {
-    const publications = require("../controllers/comment.controller.js");
+    const comment = require("../controllers/comment.controller.js");
     var router = require("express").Router();
   
     // Create a new publication
-    router.post("/", publications.createComment);
+    router.post("/", comment.createComment);
     // Retrieve a single publication with id
-    router.get("/:id", publications.findCommentById);
+    router.get("/:id", comment.findCommentById);
   
-    app.use('/api/publications', router);
+    app.use('/api/:id', router);
   };
