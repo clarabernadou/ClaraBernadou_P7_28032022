@@ -12,6 +12,7 @@ exports.create = (req, res) => {
       });
       return;
     }
+    
     // Create a publication
     const publication = {
       userId: req.params.userId,
