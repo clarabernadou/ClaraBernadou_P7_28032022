@@ -4,19 +4,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       required: true
     },
-    title: {
-      type: DataTypes.STRING,
-      required: true 
-    },
     description: {
       type: DataTypes.STRING,
       required: true
     },
     imageUrl: { 
       type: DataTypes.STRING
-    },
-    published: {
-      type: DataTypes.BOOLEAN
     }
   });
   return Publication;
