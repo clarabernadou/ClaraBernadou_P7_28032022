@@ -6,20 +6,18 @@ const Op = db.Sequelize.Op;
 // Create and Save a new publication
 exports.create = (req, res) => {
     // Validate request
-    if (!req.body.title) {
+    if (!req.body.description) {
       res.status(400).send({
         message: "Content can not be empty!"
       });
       return;
     }
-    
+   console.log("hello") 
     // Create a publication
     const publication = {
-      userId: req.params.userId,
-      title: req.body.title,
+      userId: req.body.userId,
       description: req.body.description,
-      imageUrl: req.body.imageUrl,
-      published: req.body.published ? req.body.published : false
+      //imageUrl: req.body.imageUrl
     };
     // Save publications in the database
     Publication.create(publication)
@@ -35,7 +33,7 @@ exports.create = (req, res) => {
   };
 // Retrieve all publications from the database.
 exports.findAll = (req, res) => {
-    const title = req.query.title;
+    const description = req.query.description;
     var condition = title ? { title: { [Op.like]: `%${title}%` } } : null;
     Publication.findAll({ where: condition })
       .then(data => {

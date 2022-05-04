@@ -7,7 +7,13 @@ const db = require("./app/models");
 
 const Role = db.role;
 
-app.use(cors());
+//app.use(cors());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+  next()
+})
 
 function initial() {
     Role.create({
@@ -34,10 +40,6 @@ db.sequelize.sync();
   initial()
 }); */
 
-var corsOptions = {
-  origin: "http://localhost:8080"
-};
-app.use(cors(corsOptions));
 // parse requests of content-type - application/json
 app.use(express.json());
 
@@ -51,10 +53,6 @@ app.use(
   })
 );
 
-// simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome." });
-});
 // routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
