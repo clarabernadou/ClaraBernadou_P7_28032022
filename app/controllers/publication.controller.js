@@ -17,7 +17,7 @@ exports.create = (req, res) => {
     const publication = {
       userId: req.body.userId,
       description: req.body.description,
-      //imageUrl: req.body.imageUrl
+      imageUrl: req.body.imageUrl
     };
     // Save publications in the database
     Publication.create(publication)
@@ -34,7 +34,7 @@ exports.create = (req, res) => {
 // Retrieve all publications from the database.
 exports.findAll = (req, res) => {
     const description = req.query.description;
-    var condition = title ? { title: { [Op.like]: `%${title}%` } } : null;
+    var condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
     Publication.findAll({ where: condition })
       .then(data => {
         res.send(data);
