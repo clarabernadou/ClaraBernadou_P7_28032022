@@ -4,15 +4,17 @@ const User = db.user;
 const Role = db.role;
 const Op = db.Sequelize.Op;
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const { isAdmin } = require("../middleware/authJwt");
 exports.signup = async (req, res) => {
   // Save User to Database
+
   try {
     const user = await User.create({
       username: req.body.username,
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 8),
+      imageUrl: req.body.imageUrl
     });
     if (req.body.roles) {
       const roles = await Role.findAll({
@@ -57,9 +59,13 @@ exports.signin = async (req, res) => {
     const token = jwt.sign({ id: user.id }, config.secret, {
       expiresIn: 86400, // 24 hours
     });
-
+ 
     return res.status(200).send({
       token: token,
+      username: user.username,
+      email: user.email,
+      id: user.id,
+      password: user.password
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });
