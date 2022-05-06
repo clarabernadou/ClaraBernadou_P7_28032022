@@ -1,11 +1,15 @@
-module.exports = app => {
-    const comment = require("../controllers/comment.controller.js");
-    var router = require("express").Router();
-  
-    // Create a new publication
-    router.post("/", comment.createComment);
-    // Retrieve a single publication with id
-    router.get("/:id", comment.findCommentById);
-  
-    app.use('/api/:id', router);
-  };
+const comment = require("../controllers/comment.controller.js");
+module.exports = function(app) {
+  app.use(function(req, res, next) {
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, Content-Type, Accept"
+    );
+    next();
+  });
+  app.post(
+    "/api/publication/:id/comment",
+    comment.createComment
+  );
+  app.get("/api/publication/:id/comment/:id", comment.findCommentById);
+};

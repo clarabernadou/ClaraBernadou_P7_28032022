@@ -17,7 +17,7 @@ module.exports = function(app) {
   );
   app.post("/api/auth/signin", controller.signin);
   app.post("/api/auth/signout", controller.signout);
-  app.put("/api/auth/update/:id", controller.update);
-  app.delete("/api/auth/delete/:id", controller.delete);
-  app.get("/api/auth/:id", controller.findOne);
+  app.put("/api/auth/profile", controller.update);
+  app.delete("/api/auth/profile", controller.delete);
+  app.get("/api/auth/profile", controller.findOne);
 };
