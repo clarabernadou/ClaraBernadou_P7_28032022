@@ -12,12 +12,15 @@ exports.create = (req, res) => {
       });
       return;
     }
+    console.log('---------------------------')
+    console.log(req.file)
+    console.log('---------------------------')
 
     // Create a publication
     const publication = {
       userId: req.body.userId,
       description: req.body.description,
-      imageUrl: req.body.imageUrl
+      imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null,
     };
     // Save publications in the database
     Publication.create(publication)
@@ -33,11 +36,12 @@ exports.create = (req, res) => {
   };
 // Retrieve all publications from the database.
 exports.findAll = (req, res) => {
-    const description = req.query.description;
-    var condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
-    Publication.findAll({ where: condition })
+    //const description = req.query.description;
+    //var condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
+    Publication.findAll()
       .then(data => {
         res.send(data);
+        console.log(data);
       })
       .catch(err => {
         res.status(500).send({
