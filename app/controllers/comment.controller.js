@@ -3,9 +3,9 @@ const Comment = db.comments;
 
 exports.createComment = (req, res, publicationId) => {
     const comment = {
-      name: req.body.name,
-      text: req.body.text,
-      publicationId: req.params.publicationId
+      username: req.body.username,
+      descriptionComment: req.body.descriptionComment,
+      publicationId: publicationId
     }
     Comment.create(comment)
       .then((data) => {

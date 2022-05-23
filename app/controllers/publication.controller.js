@@ -19,6 +19,7 @@ exports.create = (req, res) => {
     // Create a publication
     const publication = {
       userId: req.body.userId,
+      username: req.body.username,
       description: req.body.description,
       imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null,
     };
@@ -38,7 +39,9 @@ exports.create = (req, res) => {
 exports.findAll = (req, res) => {
     //const description = req.query.description;
     //var condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
-    Publication.findAll()
+    Publication.findAll({
+      include: ["comments"],
+    })
       .then(data => {
         res.send(data);
         console.log(data);
@@ -144,3 +147,46 @@ exports.findAllPublished = (req, res) => {
         });
       });
   };
+// Like or not
+  exports.likeOrNot = (req, res, next) => {
+    if (req.body.like === 1) {
+        Publication.updateOne({ _id: req.params.id }, { $inc: { likes: req.body.like++ }, $push: { usersLiked: req.body.userId } })
+            .then((publication) => 
+              res.status(200).json({ message: 'Add like' })) //if like is add
+            .catch(error => 
+                res.status(400).json({ error })) //else return 400 error
+    } else if (req.body.like === -1) {
+      Publication.updateOne({ _id: req.params.id }, { $inc: { dislikes: (req.body.like++) * -1 }, $push: { usersDisliked: req.body.userId } })
+            .then((publication) => 
+              res.status(200).json({ message: 'Add dislike' })) //if dislike is add
+            .catch(error => 
+                res.status(400).json({ error })) //else return 400 error
+    } else {
+  Publication.findOne({ _id: req.params.id })
+    .then(publication => {
+      if (publication.usersLiked.includes(req.body.userId)) {
+      Publication.updateOne({ _id: req.params.id }, { $pull: { usersLiked: req.body.userId }, $inc: { likes: -1 } })
+        .then(
+          (publication) => { 
+            res.status(200).json({ message: 'Like deleted' }) }) //if like is deleted
+  .catch(
+    error => res.status(400).json({ error })) //else return 400 error
+  } else if (publication.usersDisliked.includes(req.body.userId)) {
+    Publication.updateOne(
+      { _id: req.params.id }, { $pull: { usersDisliked: req.body.userId }, $inc: { dislikes: -1 } })
+        .then(
+          (publication) => { 
+            res.status(200).json({ message: 'Dislike deleted' }) }) //if dislike is deleted
+  //IF ELSE
+  .catch(
+    error => 
+      res.status(400).json({ error })) //else return 400 error
+          }
+    })
+  //IF ELSE
+  .catch(
+    error => 
+      res.status(400).json({ error })) //else return 400 error
+    }
+  } 
+  

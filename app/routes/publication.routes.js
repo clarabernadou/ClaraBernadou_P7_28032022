@@ -8,4 +8,5 @@ module.exports = function(app) {
   app.put("/api/publication/update/:id", multer, publications.update);
   app.delete("/api/publication/delete/:id", publications.delete);
   app.delete("/api/publications/delete", publications.deleteAll);
+  app.post("/api/publication/likeOrNot", publications.likeOrNot)
 };
