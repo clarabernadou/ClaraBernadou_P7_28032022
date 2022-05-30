@@ -4,11 +4,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         required: true
       },
-      name: {
+      username: {
         type: DataTypes.STRING, 
         required: true 
       },
-      text: {
+      descriptionComment: {
         type: DataTypes.STRING, 
         required: true 
       },

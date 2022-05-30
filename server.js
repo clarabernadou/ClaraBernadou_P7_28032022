@@ -1,8 +1,11 @@
+//Import utils
 const express = require("express");
 const cookieSession = require("cookie-session");
 const path = require('path');
 const app = express();
 const db = require("./app/models");
+
+const controller = require("./app/controllers/publication.controller");
 
 const Role = db.role;
 
@@ -66,3 +69,7 @@ app.listen(PORT, () => {
 
 // images
 app.use('/images', express.static(path.join(__dirname, '/public/images')));
+
+// security
+var helmet = require('helmet');
+app.use(helmet());

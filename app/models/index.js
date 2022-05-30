@@ -40,18 +40,35 @@ db.user.belongsToMany(db.role, {
 db.ROLES = ["user", "admin", "moderator"];
 /*********** PUBLICATIONS - USERS ***********/
 db.publications.belongsTo(db.user, {
-  foreignKey: "userId",
-  as: "owner"
-})
-/*********** COMMENTS - USERS ***********/
-db.comments.belongsTo(db.user, {
-  foreignKey: "userId",
-  as: "author"
-})
+  foreignKey: 'userId',
+  as: 'user'
+});
+/*********** USERS - PUBLICATIONS  ***********/
+db.user.hasMany(db.publications, {
+  as: 'publications'
+});
+/*********** PUBLICATIONS - COMMENTS ***********/
+db.publications.hasMany(db.comments, { 
+  as: "comments" 
+});
 /*********** COMMENTS - PUBLICATIONS ***********/
 db.comments.belongsTo(db.publications, {
   foreignKey: "publicationId",
   as: "publication",
 });
+/*********** USERS - COMMENTS ***********/
+db.user.hasMany(db.comments, {
+  as : 'comments'
+});
+/*********** COMMENTS - USERS ***********/
+db.comments.belongsTo(db.user, {
+  foreignKey: 'userId',
+  as: 'user'
+});
+
+
+
+
+
 
 module.exports = db;
