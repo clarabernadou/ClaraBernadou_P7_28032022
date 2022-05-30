@@ -1,8 +1,9 @@
 const { verifySignUp } = require("../middleware");
 const controller = require("../controllers/auth.controller");
 const multer = require('../middleware/multer.config');
+const userPassLength = require('../middleware/password');
 module.exports = function(app) {
-  app.post("/api/auth/signup", [ verifySignUp.checkRolesExisted ], controller.signup);
+  app.post("/api/auth/signup", [ verifySignUp.checkRolesExisted ], userPassLength, controller.signup);
   app.post("/api/auth/signin", controller.signin);
   app.post("/api/auth/signout", controller.signout);
   app.put("/api/auth/profile/update/:id", multer, controller.update);

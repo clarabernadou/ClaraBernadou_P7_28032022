@@ -1,3 +1,4 @@
+const { response } = require("express");
 const db = require("../models");
 const Publication = db.publications;
 const Comment = db.comments;
@@ -26,7 +27,11 @@ exports.create = (req, res) => {
     // Save publications in the database
     Publication.create(publication)
       .then(data => {
-        res.send(data);
+        const post = data.get({plain: true});
+        post.comments = []
+        console.log("Post console.log (for add comments array) ⬇️")
+        console.log(post)
+        res.send(post);
       })
       .catch(err => {
         res.status(500).send({
@@ -147,46 +152,3 @@ exports.findAllPublished = (req, res) => {
         });
       });
   };
-// Like or not
-  exports.likeOrNot = (req, res, next) => {
-    if (req.body.like === 1) {
-        Publication.updateOne({ _id: req.params.id }, { $inc: { likes: req.body.like++ }, $push: { usersLiked: req.body.userId } })
-            .then((publication) => 
-              res.status(200).json({ message: 'Add like' })) //if like is add
-            .catch(error => 
-                res.status(400).json({ error })) //else return 400 error
-    } else if (req.body.like === -1) {
-      Publication.updateOne({ _id: req.params.id }, { $inc: { dislikes: (req.body.like++) * -1 }, $push: { usersDisliked: req.body.userId } })
-            .then((publication) => 
-              res.status(200).json({ message: 'Add dislike' })) //if dislike is add
-            .catch(error => 
-                res.status(400).json({ error })) //else return 400 error
-    } else {
-  Publication.findOne({ _id: req.params.id })
-    .then(publication => {
-      if (publication.usersLiked.includes(req.body.userId)) {
-      Publication.updateOne({ _id: req.params.id }, { $pull: { usersLiked: req.body.userId }, $inc: { likes: -1 } })
-        .then(
-          (publication) => { 
-            res.status(200).json({ message: 'Like deleted' }) }) //if like is deleted
-  .catch(
-    error => res.status(400).json({ error })) //else return 400 error
-  } else if (publication.usersDisliked.includes(req.body.userId)) {
-    Publication.updateOne(
-      { _id: req.params.id }, { $pull: { usersDisliked: req.body.userId }, $inc: { dislikes: -1 } })
-        .then(
-          (publication) => { 
-            res.status(200).json({ message: 'Dislike deleted' }) }) //if dislike is deleted
-  //IF ELSE
-  .catch(
-    error => 
-      res.status(400).json({ error })) //else return 400 error
-          }
-    })
-  //IF ELSE
-  .catch(
-    error => 
-      res.status(400).json({ error })) //else return 400 error
-    }
-  } 
-  
