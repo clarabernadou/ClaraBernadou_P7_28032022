@@ -3,14 +3,13 @@ const Publication = db.publications;
 const Comment = db.comments;
 
 exports.createComment = (req, res) => {
-
   const comment = {
-    userId: req.body.userId,
     username: req.body.username,
     descriptionComment: req.body.descriptionComment,
     publicationId: req.body.publicationId,
+    userId: req.userId
   }
-
+  console.log("Comment console.log ⬇️")
   console.log(comment);
 
   Comment.create(comment)
