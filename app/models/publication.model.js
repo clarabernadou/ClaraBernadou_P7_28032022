@@ -10,17 +10,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     description: {
       type: DataTypes.STRING,
-      required: true
+      allowNull: false
     },
     imageUrl: { 
       type: DataTypes.STRING
-    },
-    like: {
-      type: DataTypes.INTEGER
-    },
-    dislike: {
-      type: DataTypes.INTEGER
-    },
+    }
   });
   return Publication;
 };
