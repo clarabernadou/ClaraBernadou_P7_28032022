@@ -42,8 +42,6 @@ exports.create = (req, res) => {
   };
 // Retrieve all publications from the database.
 exports.findAll = (req, res) => {
-    //const description = req.query.description;
-    //var condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
     Publication.findAll({
       include: ["comments"],
     })
@@ -141,14 +139,27 @@ exports.deleteAll = (req, res) => {
   };
 // Find all published publications
 exports.findAllPublished = (req, res) => {
-  Publication.findAll({ where: { published: true } })
-      .then(data => {
-        res.send(data);
+  Publication.findAll({ raw: true, where: { published: true }, include: ['user'] })
+    .then(publications => {
+      Comment.findAll().then(comments => {
+        const publicationsWithComments = publications.map(publication => {
+          console.log(publication)
+          publication.comments = [];
+          comments.forEach(comment => {
+            if (comment.publicationId === publication.id) {
+              publication.comments.push(comment);
+            }
+          })
+          return tuto;
+        })
+        //console.log(publicationsWithComments);
+        res.send(publicationsWithComments);
       })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving publications."
-        });
-      });
-  };
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "error"
+      })
+    })
+}
