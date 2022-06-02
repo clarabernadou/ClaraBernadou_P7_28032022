@@ -3,9 +3,15 @@
 This project is create with NodeJS
 
 ## To launch the project
+1. Download the two parts of the project (back and front)
+
+2. Open the two files in vscode 
+
+3. Run the command
 
 ### `Nodemon server`
 
+  in the console
 ______________________________________________________
 
 # Project application
