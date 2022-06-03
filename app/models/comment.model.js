@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       descriptionComment: {
         type: DataTypes.STRING, 
-        allowNull: false 
+        require: true 
       },
       publicationId: {
         type: DataTypes.INTEGER,
