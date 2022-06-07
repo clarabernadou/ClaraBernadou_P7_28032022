@@ -13,14 +13,16 @@ exports.createComment = (req, res) => {
   console.log(comment);
 
   Comment.create(comment)
-    .then((comment) => {
-      console.log(">> Created comment: " + JSON.stringify(comment, null, 4));
-      return comment;
+    .then((data) => {
+      console.log(">> Created comment: " + JSON.stringify(data, null, 4));
+        res.send(data);
     })
     .catch((err) => {
       console.log(">> Error while creating comment: ", err);
     });
 };
+
+// Retrieve all comments from the database with id.
 exports.findCommentById = (id) => {
   return Comment.findByPk(id, { include: ["publication"] })
     .then((comment) => {
@@ -31,7 +33,7 @@ exports.findCommentById = (id) => {
     });
 };
 
-// Retrieve all publications from the database.
+// Retrieve all comments from the database.
 exports.findAllComments = (req, res) => {
   Comment.findAll()
     .then(data => {
@@ -48,9 +50,10 @@ exports.findAllComments = (req, res) => {
 
 // Delete a publication with the specified id in the request
 exports.deleteComment = (req, res) => {
-  const id = req.params.id;
+  const publicationId = req.params.publicationId;
+  const commentId = req.params.commentId
   Comment.destroy({
-    where: { id: id }
+    where: { id: commentId, publicationId: publicationId }
   })
     .then(num => {
       if (num == 1) {
