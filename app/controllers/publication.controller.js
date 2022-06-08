@@ -99,7 +99,7 @@ exports.delete = (req, res) => {
     const id = req.params.id;
     Publication.findByPk(id)
     .then(post => {
-      if(post.userId === req.userId){
+      if(post.userId === req.userId || req.userRole === "admin"){
         Publication.destroy({
           where: { id: id }
         })
