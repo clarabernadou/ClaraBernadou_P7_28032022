@@ -1,4 +1,4 @@
-# Backend Groupomania
+# Backend Groupomania (old version before may)
 
 This project is create with NodeJS
 
