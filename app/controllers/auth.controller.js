@@ -55,7 +55,11 @@ exports.signin = async (req, res) => {
         message: "Invalid Password!",
       });
     }
-    const token = jwt.sign({ id: user.id }, config.secret, {
+    console.log("User console.log");
+    console.log(user);
+    const token = jwt.sign({ 
+      id: user.id, 
+    }, config.secret, {
       expiresIn: 86400, // 24 hours
     });
 

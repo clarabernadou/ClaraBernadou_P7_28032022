@@ -52,23 +52,29 @@ exports.findAllComments = (req, res) => {
 exports.deleteComment = (req, res) => {
   const publicationId = req.params.publicationId;
   const commentId = req.params.commentId
-  Comment.destroy({
-    where: { id: commentId, publicationId: publicationId }
-  })
-    .then(num => {
-      if (num == 1) {
-        res.send({
-          message: "Comment was deleted successfully!"
-        });
-      } else {
-        res.send({
-          message: `Cannot delete comment with id=${id}. Maybe comment was not found!`
-        });
-      }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete comment with id=" + id
-      });
+    Comment.findByPk(commentId)
+    .then(comment => {
+      if(comment.userId === req.userId){
+        Comment.destroy({
+          where: { id: commentId, publicationId: publicationId }
+        })
+          .then(num => {
+            if (num == 1) {
+              res.send({
+                message: "Comment was deleted successfully!"
+              });
+            } else {
+              res.send({
+                message: `Cannot delete comment with id=${id}. Maybe comment was not found!`
+              });
+            }
+          })
+          .catch(err => {
+            res.status(500).send({
+              message: "Could not delete comment with id=" + id
+            });
+          });
+      };
     });
-};
+    }
+  
