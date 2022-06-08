@@ -66,9 +66,4 @@ db.comments.belongsTo(db.user, {
   as: 'user'
 });
 
-
-
-
-
-
 module.exports = db;

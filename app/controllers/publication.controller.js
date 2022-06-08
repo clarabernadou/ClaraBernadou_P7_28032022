@@ -12,11 +12,7 @@ exports.create = (req, res) => {
         message: "Content can not be empty!"
       });
       return;
-    }
-    console.log('---------------------------')
-    console.log(req.file)
-    console.log('---------------------------')
-
+    };
     // Create a publication
     const publication = {
       userId: req.body.userId,
@@ -101,42 +97,47 @@ exports.update = (req, res) => {
 // Delete a publication with the specified id in the request
 exports.delete = (req, res) => {
     const id = req.params.id;
-    Publication.destroy({
-      where: { id: id }
-    })
-      .then(num => {
-        if (num == 1) {
-          res.send({
-            message: "Publication was deleted successfully!"
+    Publication.findByPk(id)
+    .then(post => {
+      if(post.userId === req.userId){
+        Publication.destroy({
+          where: { id: id }
+        })
+          .then(num => {
+            if (num == 1) {
+              res.send({
+                message: "Publication was deleted successfully!"
+              });
+            }else{
+              res.send({
+                message: `Cannot delete publication with id=${id}. Maybe publication was not found!`
+              });
+            }
+          })
+          .catch(err => {
+            res.status(500).send({
+              message: "Could not delete publication with id=" + id
+            });
           });
-        } else {
-          res.send({
-            message: `Cannot delete publication with id=${id}. Maybe publication was not found!`
-          });
-        }
-      })
-      .catch(err => {
-        res.status(500).send({
-          message: "Could not delete publication with id=" + id
-        });
-      });
-  };
+      };
+    });
+    }
 // Delete all publications from the database.
 exports.deleteAll = (req, res) => {
   Publication.destroy({
-      where: {},
-      truncate: false
+    where: {},
+    truncate: false
+  })
+    .then(nums => {
+      res.send({ message: `${nums} publications were deleted successfully!` });
     })
-      .then(nums => {
-        res.send({ message: `${nums} publications were deleted successfully!` });
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while removing all publications."
-        });
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while removing all publications."
       });
-  };
+    });
+};
 // Find all published publications
 exports.findAllPublished = (req, res) => {
   Publication.findAll({ raw: true, where: { published: true }, include: ['user'] })
