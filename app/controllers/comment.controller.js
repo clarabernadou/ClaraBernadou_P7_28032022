@@ -54,7 +54,7 @@ exports.deleteComment = (req, res) => {
   const commentId = req.params.commentId
     Comment.findByPk(commentId)
     .then(comment => {
-      if(comment.userId === req.userId){
+      if(comment.userId === req.userId || req.userRole === "admin"){
         Comment.destroy({
           where: { id: commentId, publicationId: publicationId }
         })

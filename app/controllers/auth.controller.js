@@ -6,6 +6,7 @@ const Op = db.Sequelize.Op;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { isAdmin } = require("../middleware/authJwt");
+const { role } = require("../models");
 
 exports.signup = async (req, res) => {
   // Save User to Database
@@ -55,19 +56,24 @@ exports.signin = async (req, res) => {
         message: "Invalid Password!",
       });
     }
-    console.log("User console.log");
-    console.log(user);
+    var authorities = [];
+    user.getRoles().then(roles => {
+      for (let i = 0; i < roles.length; i++) {
+        authorities.push(roles[i].name);
+      }
     const token = jwt.sign({ 
       id: user.id, 
+      role: authorities.toString()
     }, config.secret, {
       expiresIn: 86400, // 24 hours
     });
-
-    return res.status(200).send({
-      token: token,
-      username: user.username,
-      email: user.email,
-      id: user.id
+      return res.status(200).send({
+        token: token,
+        username: user.username,
+        email: user.email,
+        role: authorities,
+        id: user.id
+      });
     });
   } catch (error) {
     return res.status(500).send({ message: error.message });

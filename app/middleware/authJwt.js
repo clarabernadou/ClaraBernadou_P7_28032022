@@ -16,13 +16,15 @@ verifyToken = (req, res, next) => {
       });
     }
     req.userId = decoded.id;
+    req.userRole = decoded.role;
+    console.log(req.userRole);
     next();
   });
 };
 isAdmin = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.userId);
-    const roles = await user.getRoles();
+    const roles = user.getRoles();
     for (let i = 0; i < roles.length; i++) {
       if (roles[i].name === "admin") {
         return next();
