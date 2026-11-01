@@ -1,0 +1,687 @@
+openapi: 3.0.3
+info:
+  title: Groupomania — API back-end
+  version: 1.0.0
+  description: |
+    API REST du réseau social interne Groupomania : comptes utilisateurs, publications avec image et commentaires.
+
+    Cette documentation est rédigée à partir du code du dépôt (routes, middlewares et contrôleurs). Elle décrit l'API ; aucun serveur n'est hébergé ici.
+
+    **Authentification** : la plupart des routes exigent un jeton JWT (valable 24 h) dans l'en-tête `Authorization: Bearer <jeton>`, obtenu avec `POST /api/auth/signin`.
+servers:
+  - url: http://localhost:8080
+    description: Serveur local (port défini par la variable d'environnement PORT, 8080 par défaut)
+tags:
+  - name: Authentification
+    description: Inscription, connexion et gestion du profil
+  - name: Publications
+    description: Publications, avec image facultative
+  - name: Commentaires
+    description: Commentaires rattachés aux publications
+  - name: Accès de test
+    description: Routes de contrôle des rôles
+paths:
+  /api/auth/signup:
+    post:
+      tags: [Authentification]
+      summary: Créer un compte
+      description: Le mot de passe doit comporter plus de 8 et moins de 100 caractères (le message d'erreur annonce « 8 caractères minimum »).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '200':
+          description: Compte créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: User registered successfully!
+        '400':
+          description: Mot de passe trop court ou trop long, ou rôle inexistant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/auth/signin:
+    post:
+      tags: [Authentification]
+      summary: Se connecter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SigninRequest'
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SigninResponse'
+        '401':
+          description: Mot de passe incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Invalid Password!
+        '404':
+          description: Utilisateur inconnu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: User Not found.
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/auth/signout:
+    post:
+      tags: [Authentification]
+      summary: Se déconnecter
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Déconnexion confirmée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/auth/profile/{id}:
+    get:
+      tags: [Authentification]
+      summary: Lire un profil
+      description: Renvoie l'enregistrement de l'utilisateur tel qu'il est stocké, y compris le mot de passe haché.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/auth/profile/update/{id}:
+    put:
+      tags: [Authentification]
+      summary: Modifier un profil
+      description: Les champs envoyés dans le corps sont enregistrés tels quels (nom, e-mail, image…).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                imageUrl:
+                  type: string
+      responses:
+        '200':
+          description: Réponse de mise à jour (le message indique si l'utilisateur a été trouvé)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: User was updated successfully.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/auth/profile/delete/{id}:
+    delete:
+      tags: [Authentification]
+      summary: Supprimer un compte
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Réponse de suppression
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: User was deleted successfully!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/upload_file/{id}:
+    post:
+      tags: [Authentification]
+      summary: Envoyer une image de profil
+      description: Enregistre l'image dans le dossier public des images du serveur (formats jpg, jpeg, png, gif).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image reçue (la réponse reprend les paramètres de l'URL)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/publication/create:
+    post:
+      tags: [Publications]
+      summary: Créer une publication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [description]
+              properties:
+                description:
+                  type: string
+                userId:
+                  type: integer
+                username:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                  description: Image facultative
+      responses:
+        '200':
+          description: Publication créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publication'
+        '400':
+          description: Description vide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Content can not be empty!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/publications:
+    get:
+      tags: [Publications]
+      summary: Lister les publications
+      description: Renvoie toutes les publications avec leurs commentaires.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des publications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Publication'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/publications/published:
+    get:
+      tags: [Publications]
+      summary: Lister les publications « publiées »
+      description: "Filtre sur un champ `published` que le modèle de publication ne déclare pas : cette route peut répondre 500 avec le code actuel."
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Publications publiées avec leurs commentaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Publication'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/publications/delete:
+    delete:
+      tags: [Publications]
+      summary: Supprimer toutes les publications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Nombre de publications supprimées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: 12 publications were deleted successfully!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/publication/{id}:
+    get:
+      tags: [Publications]
+      summary: Lire une publication
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PublicationId'
+      responses:
+        '200':
+          description: Publication trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publication'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Publication introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/publication/update/{id}:
+    put:
+      tags: [Publications]
+      summary: Modifier une publication
+      description: Les champs envoyés dans le corps sont enregistrés tels quels.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PublicationId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Réponse de mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Publication was updated successfully.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/publication/delete/{id}:
+    delete:
+      tags: [Publications]
+      summary: Supprimer une publication
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PublicationId'
+      responses:
+        '200':
+          description: Réponse de suppression
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Publication was deleted successfully!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/{publicationId}/comments:
+    post:
+      tags: [Commentaires]
+      summary: Ajouter un commentaire
+      description: L'auteur (userId) est déduit du jeton.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PublicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [descriptionComment]
+              properties:
+                username:
+                  type: string
+                descriptionComment:
+                  type: string
+                publicationId:
+                  type: integer
+      responses:
+        '200':
+          description: Commentaire créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/comments:
+    get:
+      tags: [Commentaires]
+      summary: Lister tous les commentaires
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des commentaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/comments/{id}:
+    get:
+      tags: [Commentaires]
+      summary: Lire un commentaire
+      description: Route déclarée ; le contrôleur correspondant est incomplet dans le code actuel (aucune réponse n'est garantie).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Commentaire trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/{publicationId}/comments/delete/{commentId}:
+    delete:
+      tags: [Commentaires]
+      summary: Supprimer un commentaire
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PublicationIdPath'
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Réponse de suppression
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Comment was deleted successfully!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/test/all:
+    get:
+      tags: [Accès de test]
+      summary: Contenu public
+      responses:
+        '200':
+          description: Texte de test, sans authentification
+  /api/test/user:
+    get:
+      tags: [Accès de test]
+      summary: Contenu réservé aux utilisateurs connectés
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Texte de test
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/test/mod:
+    get:
+      tags: [Accès de test]
+      summary: Contenu réservé aux modérateurs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Texte de test
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/test/admin:
+    get:
+      tags: [Accès de test]
+      summary: Contenu réservé aux administrateurs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Texte de test
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton renvoyé par la connexion, valable 24 heures.
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant de l'utilisateur
+      schema:
+        type: integer
+    PublicationId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant de la publication
+      schema:
+        type: integer
+    PublicationIdPath:
+      name: publicationId
+      in: path
+      required: true
+      description: Identifiant de la publication
+      schema:
+        type: integer
+  responses:
+    Unauthorized:
+      description: Jeton invalide ou expiré
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+          example:
+            message: Unauthorized!
+    ServerError:
+      description: Erreur serveur
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+  schemas:
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+    SignupRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 9
+          maxLength: 99
+        roles:
+          type: array
+          items:
+            type: string
+          description: Rôles facultatifs (par exemple « admin » ou « moderator »)
+    SigninRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    SigninResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Jeton JWT (24 h)
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: array
+          items:
+            type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          description: Mot de passe haché (bcrypt)
+        imageUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Publication:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+          description: Adresse de l'image envoyée, ou null
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        publicationId:
+          type: integer
+        descriptionComment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
